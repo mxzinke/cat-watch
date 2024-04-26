@@ -11,7 +11,7 @@ const takeScreenshot = async () => {
     await page.screenshot({path: '/tmp/screenshot.png'});
     let pageTitle = await page.title();
     log.info('Page title: ' + pageTitle);
-    return pageTitle;  // Or any other relevant output
+    // Returning some test result
 };
 
 exports.handler = async () => {

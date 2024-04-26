@@ -56,22 +56,22 @@ export default $config({
     //   policyArn: "arn:aws:iam::aws:policy/AmazonSyntheticsFullAccess",
     // });
 
-    const canaryCodeArchive = new pulumi.asset.AssetArchive({
-      "nodejs/node_modules/index.js": new pulumi.asset.FileAsset(
-        path.join(process.cwd(), "canary", "index.js"),
-      ),
-      // In case you have dependencies:
-      "nodejs/node_modules/package.json": new pulumi.asset.FileAsset(
-        path.join(process.cwd(), "canary", "package.json"),
-      ),
-    });
-    const canaryCodeS3Object = new aws.s3.BucketObject("CanaryCode", {
-      bucket: canaryBucket.bucket,
-      key: "canary.zip",
-      source: canaryCodeArchive,
-    });
-
     site.url.apply((url) => {
+      const canaryCodeArchive = new pulumi.asset.AssetArchive({
+        "nodejs/node_modules/index.js": new pulumi.asset.FileAsset(
+          path.join(process.cwd(), "canary", "index.js"),
+        ),
+        // In case you have dependencies:
+        "nodejs/node_modules/package.json": new pulumi.asset.FileAsset(
+          path.join(process.cwd(), "canary", "package.json"),
+        ),
+      });
+      const canaryCodeS3Object = new aws.s3.BucketObject("CanaryCode", {
+        bucket: canaryBucket.bucket,
+        key: "canary.zip",
+        source: canaryCodeArchive,
+      });
+
       new aws.synthetics.Canary("ScreenshotCanary", {
         name: "cat-watch-screenshot",
         artifactS3Location: pulumi.interpolate`s3://${canaryBucket.bucket}/`,
@@ -83,6 +83,7 @@ export default $config({
           expression: "rate(1 hour)",
           durationInSeconds: 3600,
         },
+        startCanary: true, // Automatically start the canary after creation
         s3Bucket: canaryBucket.bucket,
         s3Key: canaryCodeS3Object.key,
         s3Version: canaryCodeS3Object.versionId,
